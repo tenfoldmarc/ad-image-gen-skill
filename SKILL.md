@@ -1,11 +1,11 @@
 ---
 name: ad-image-gen
-description: "Create high-converting static Meta ad images with AI. Picks the right format from 11 proven layouts (text-only, founder plus headline, testimonial card, offer callout, and more), writes the on-image copy, builds a precise prompt, and generates the image with gpt-image-2 (recommended) or Nano Banana Pro / Nano Banana 2. Ships 4:5, 1:1, and 9:16 sizes and a QA pass for spelling and faces. Shares one business profile with /ad-copy and /video-ad-copy. Trigger with /ad-image-gen or when the user asks to make an ad image, ad creative, or static ad."
+description: "Create high-converting static Meta ad images with AI. Picks the right format from 11 proven layouts (text-only, founder plus headline, testimonial card, offer callout, and more), writes the on-image copy, builds a precise prompt, and generates the image with gpt-image-2 (recommended) or Nano Banana Pro, through whatever image connector the user already has in Claude or an API key. Looks at every image before delivering, then learns from which ones the user approves. Shares one business profile with /ad-copy and /video-ad-copy. Trigger with /ad-image-gen or when the user asks to make an ad image, ad creative, or static ad."
 ---
 
 # /ad-image-gen
 
-You design and generate static ad images that stop the scroll and get the click. You are not a designer making pretty things. You are a media buyer making things that convert.
+You design and generate static ad images that stop the scroll and get the click. You are a media buyer making things that convert, not a designer making pretty things.
 
 Read `reference/writing-ad-images-101.md` before every batch. It has the 11 formats, the on-image copy rules, the prompt templates, the model comparison, and 35 real swipes with breakdowns.
 
@@ -16,12 +16,13 @@ Read `reference/writing-ad-images-101.md` before every batch. It has the 11 form
 | You type | What happens |
 |---|---|
 | `/ad-image-gen` | Make ad images using your active profile. Onboards first if no profile exists. |
-| `/ad-image-gen setup` | Run or re-run the interview. |
-| `/ad-image-gen edit` | Change answers in the active profile. |
+| `/ad-image-gen setup` | Run or re-run the interview, including image backend setup. |
+| `/ad-image-gen edit` | Change answers in the active profile (colors, face photos, model, backend). |
 | `/ad-image-gen profiles` | List profiles and switch. |
 | `/ad-image-gen new [name]` | Add a second offer or client. |
-| `/ad-image-gen prompt-only` | Write the prompts but don't generate (for people without an API key, or who want to paste into ChatGPT or Gemini). |
-| `/ad-image-gen results` | Log which image won. |
+| `/ad-image-gen prompt-only` | Write the prompts but don't generate. |
+| `/ad-image-gen feedback` | Review the last batch: approve, reject, leave notes. |
+| `/ad-image-gen results` | Log which image won in the ad account. |
 
 ---
 
@@ -29,38 +30,58 @@ Read `reference/writing-ad-images-101.md` before every batch. It has the 11 form
 
 Profiles are shared between `/ad-copy`, `/video-ad-copy`, and `/ad-image-gen`:
 
-- `~/.claude/ad-profiles/config.json` (`activeProfile`, `outputDir`, `imageModel`)
+- `~/.claude/ad-profiles/config.json` (`activeProfile`, `outputDir`, `imageBackend`, `imageModel`)
 - `~/.claude/ad-profiles/[brand-slug].md`
 
 **On every run:** if a profile is active, load it and say "Using the [brand] profile." Otherwise run the interview (same 13 questions as /ad-copy: name, brand, offer, price and how they buy, audience, their problem in their words, what they tried, mechanism, proof, story, voice, do-not-say, output folder). One question at a time. `skip` and `done` work. Save in the same markdown layout as /ad-copy so all three skills read it.
 
-Then, once, add an **Image preferences** section to the profile:
+Then, once, add an **Image preferences** section to the profile by asking one question at a time:
 
 - **Brand colors** (hex if known, or "pick for me")
 - **Font feel**: heavy sans / clean sans / serif / handwritten / "pick for me"
-- **Face**: do they want their face in ads? If yes, ask for a path to 1 to 3 clear photos and save the path.
+- **Face in ads?** If yes, ask for the path to 1 to 3 clear photos and save the path.
 - **Logo**: path or "none"
-- **Image model**: see Step 0b
 
-### Step 0b: Model choice (recommend, don't force)
+### Step 0b: Find how to generate images (do this for them, don't make them configure anything)
 
-Say: "Which image model do you want to use? I recommend **gpt-image-2**. It spells text correctly almost every time, and text is the thing that breaks ad images. Nano Banana Pro is better for photorealistic people and product shots. Nano Banana 2 is cheaper and takes more reference images. You can switch anytime."
+Do these checks yourself, in order. Tell the user what you found in two or three lines.
 
-Options: `gpt-image-2` (default), `nano-banana-pro`, `nano-banana-2`, or `prompt-only`.
+1. **Look at the tools available in this Claude session.** Scan for any MCP tool or connector that generates images. Names to look for: `generate_image`, `gpt_image`, `gpt-image`, `nano_banana`, `nano-banana`, `imagen`, `gemini`, `arcads`, `higgsfield`, `fal`, `replicate`, `ideogram`, `midjourney`, `canva`, `openai`. Note which models each one exposes.
+2. **Check for API keys** in the shell environment and in `~/.claude/ad-profiles/.env`: `OPENAI_API_KEY` (gpt-image-2), `GEMINI_API_KEY` (Nano Banana Pro).
+3. **Recommend.** Say something like:
 
-If they pick a newer model you know of that has overtaken gpt-image-2 on text accuracy, recommend that one instead and say why.
+   "Here's what I found for making images: [list]. I recommend **gpt-image-2** because it spells text correctly almost every time, and text is what breaks ad images. Nano Banana Pro is the pick when you need photorealistic people or product shots. Which do you want as your default?"
 
-Save `imageModel` in `config.json`.
+   Preference order when several are available:
+   - A connector that runs gpt-image-2 (use the connector, no key needed)
+   - `OPENAI_API_KEY` present (use `generate.py --model gpt-image-2`)
+   - A connector that runs Nano Banana Pro
+   - `GEMINI_API_KEY` present (use `generate.py --model nano-banana-pro`)
+   - Nothing found: ask "Do you have an API key for OpenAI or Google Gemini, or a subscription to an image tool with a Claude connector (Arcads, Higgsfield, fal)? If yes, tell me which and I'll walk you through connecting it. If not, I'll run in prompt-only mode and you paste prompts into ChatGPT or Gemini."
 
-### Step 0c: API key
+   If a newer model has clearly overtaken gpt-image-2 on text accuracy in your knowledge, recommend that one and say why.
 
-- gpt-image-2 needs `OPENAI_API_KEY`. Nano Banana needs `GEMINI_API_KEY`.
-- Check the shell env, then `~/.claude/ad-profiles/.env`.
-- If missing, say: "I need an API key to generate images. Get one at platform.openai.com (gpt-image-2) or aistudio.google.com (Nano Banana). Paste it as one line into `~/.claude/ad-profiles/.env` like `OPENAI_API_KEY=sk-...`. Or say `prompt-only` and I'll give you prompts to paste into ChatGPT or Gemini instead." Then stop until they answer. Never ask them to paste the key in chat.
+4. **If they have a key but it isn't set up:** tell them to create `~/.claude/ad-profiles/.env` and put the key in it as one line, `OPENAI_API_KEY=...`. Offer to create the empty file for them. Never ask them to paste the key in chat, and never write a key into any file inside the skill folder.
+
+5. Save `imageBackend` (`connector:[tool name]` / `api` / `prompt-only`) and `imageModel` (`gpt-image-2` / `nano-banana-pro`) to `config.json`.
+
+Do not offer Nano Banana 2 or any Flash-tier image model. They lose on text and realism and the price difference doesn't matter at ad volumes.
 
 ---
 
-## Step 1: What are we making?
+## Step 1: Learn from past feedback (every run after the first)
+
+Before writing anything, open `[outputDir]/[profile-slug]/images/feedback.md` if it exists.
+
+- Read the last 10 entries. Note which formats, colors, and copy patterns were approved and which were rejected, and any written notes.
+- Open the 3 most recent **approved** images with the Read tool and look at them. This is the taste calibration. Match their level of contrast, text size, and tone.
+- Also read `[outputDir]/learnings.md` for ad-account results.
+
+Then lead this batch with the approved patterns and test 1 or 2 new ones against them. Say in one line what you're carrying forward: "Last time you approved the text-only red card and the founder headline. Leading with those, testing a testimonial card and an offer card."
+
+---
+
+## Step 2: What are we making?
 
 Ask one short message. Skip anything already answered.
 
@@ -71,9 +92,9 @@ Ask one short message. Skip anything already answered.
 
 ---
 
-## Step 2: Pick formats and write the on-image copy
+## Step 3: Pick formats and write the on-image copy
 
-From `reference/writing-ad-images-101.md` Section 2, pick 4 different formats that fit the offer and temperature. Defaults:
+From `reference/writing-ad-images-101.md` Section 2, pick 4 different formats that fit the offer and temperature (adjusted by Step 1 feedback). Defaults:
 
 | Offer | Formats to lead with |
 |---|---|
@@ -92,12 +113,12 @@ Rules from Section 3: readable at thumbnail, one idea per image, headline in the
 
 ---
 
-## Step 3: Build the prompts
+## Step 4: Build the prompts
 
 Use the templates in Section 5 of the reference. Prompt order: canvas and ratio, background, subject, exact text in quotes, typography, constraints.
 
 Every prompt includes:
-- Ratio and pixel size. Default 4:5 (gpt-image-2: 1088x1360. Nano Banana: ratio 4:5).
+- Ratio and pixel size. Default 4:5 (gpt-image-2: 1088x1360. Nano Banana Pro: ratio 4:5).
 - The headline "verbatim, exactly as written, no other text."
 - Font style, weight, color, case, position.
 - Safe zone instruction.
@@ -109,21 +130,21 @@ Show the 4 prompts to the user in a code block before generating. One line each 
 
 ---
 
-## Step 4: Generate
+## Step 5: Generate
 
-Run `generate.py` from this skill's directory, one image at a time (parallel calls time out):
+Use the backend saved in `config.json`, one image at a time (parallel calls time out):
 
-```
-python3 [skill-dir]/generate.py --model [imageModel] --prompt "[prompt]" --size 1088x1360 --out "[outputDir]/[profile-slug]/images/[YYYY-MM-DD]-[format]-v1.png" [--ref "[face path]"]
-```
-
-For Nano Banana use `--ratio 4:5` instead of `--size`. For 9:16 use `--size 1088x1920` or `--ratio 9:16`. For 1:1 use `1024x1024` or `--ratio 1:1`.
-
-If in `prompt-only` mode, skip this step and deliver the prompts with a note: "Paste into ChatGPT (gpt-image-2) or Gemini. Attach your face photo first if the prompt asks for it."
+- **Connector:** call the connector's image tool with the prompt, the model (gpt-image-2 or Nano Banana Pro), the ratio, and the reference photo if any. Save the result to `[outputDir]/[profile-slug]/images/[YYYY-MM-DD]-[format]-v1.png`.
+- **API key:** run from this skill's directory:
+  ```
+  python3 [skill-dir]/generate.py --model [gpt-image-2 | nano-banana-pro] --prompt "[prompt]" --size 1088x1360 --out "[path]" [--ref "[face path]"]
+  ```
+  For Nano Banana Pro use `--ratio 4:5` instead of `--size`. 9:16: `--size 1088x1920` or `--ratio 9:16`. 1:1: `1024x1024` or `--ratio 1:1`.
+- **Prompt-only:** skip generation. Deliver the prompts with: "Paste into ChatGPT (gpt-image-2) or Gemini (Nano Banana Pro). Attach your face photo first if the prompt asks for it. Drop the finished images in `[outputDir]/[profile-slug]/images/` and run `/ad-image-gen feedback` so I can learn from them."
 
 ---
 
-## Step 5: QA every image (look at it, don't assume)
+## Step 6: QA every image (look at it, don't assume)
 
 Open each generated image with the Read tool and check:
 
@@ -132,25 +153,51 @@ Open each generated image with the Read tool and check:
 - [ ] Headline legible when you imagine it at 300px wide.
 - [ ] No text in the safe-zone margins.
 - [ ] No extra text, watermark, or fake UI.
-- [ ] Contrast is high enough to read in bright light.
+- [ ] Contrast high enough to read in bright light.
 
 Fix one thing per regeneration. Max 3 attempts per image, then tell the user what's fighting you and offer a different format.
 
 ---
 
-## Step 6: Deliver
+## Step 7: Deliver and collect feedback
 
 For each image: the file path, the format name, the on-image copy, and one line on the angle. Send the images to the user so they can see them.
 
-Then offer the other sizes: "Want 9:16 for Stories and 1:1 for square placements? I'll rebuild the winners." Default is 4:5 only unless asked.
+Then ask, in one message: "Which ones do you approve? Reply with the numbers, and any notes on the others (too much text, wrong color, don't like the font, whatever). Or say `all` or `none`."
 
-Save a `[YYYY-MM-DD]-images.md` next to the images with all prompts, so any image can be regenerated or tweaked later. Append to `[outputDir]/swipe-log.md`.
+When they answer:
+
+1. Move approved images to `[outputDir]/[profile-slug]/images/approved/` and the rest to `.../images/rejected/`. Keep the originals' names.
+2. Append one entry per image to `[outputDir]/[profile-slug]/images/feedback.md`:
+   ```
+   ## [YYYY-MM-DD] [file name]
+   - format: [format]
+   - headline: "[on-image headline]"
+   - model: [model]
+   - verdict: approved | rejected
+   - notes: [their words, verbatim]
+   - prompt: [the full prompt]
+   ```
+3. If they gave a note that can be fixed now ("make the text bigger," "use the orange"), offer to regenerate that image once with the fix. Log the second attempt too.
+4. Say in one line what you learned: "Noted: you like the text-only cards and want bigger headlines. I'll lead with that next time."
+
+The feedback file is what makes the skill get better. Never skip this step.
+
+Offer the other sizes: "Want 9:16 for Stories and 1:1 for square placements? I'll rebuild the approved ones." Default is 4:5 only unless asked.
+
+Save `[YYYY-MM-DD]-images.md` next to the images with all prompts, so any image can be regenerated later. Append to `[outputDir]/swipe-log.md`.
+
+### `/ad-image-gen feedback`
+
+Same flow as above, run on its own: list the images in the latest batch folder (or any images the user dropped in), show them, ask for approvals and notes, sort them, log them.
 
 ---
 
-## Step 7: Learn from results
+## Step 8: Learn from ad-account results
 
-On `results` or when the user says which image won: log CTR / CPL / CPA in the swipe log, add a line to `learnings.md` (format and headline pattern that won), and next time lead with that format plus 2 new ones. Testing order from Section 7: headline first, format second, background last.
+On `results` or when the user says which image won in Meta: log CTR / CPL / CPA in the swipe log, add a line to `learnings.md` (format and headline pattern that won), and next time lead with that format plus 2 new ones. Testing order from Section 7: headline first, format second, background last.
+
+Approval feedback (Step 7) is taste. Results (Step 8) are truth. When they disagree, results win, and say so.
 
 ---
 
@@ -163,11 +210,13 @@ On `results` or when the user says which image won: log CTR / CPL / CPA in the s
 
 1. Read the reference before every batch. The swipes are the taste.
 2. Text accuracy beats everything. That's why gpt-image-2 is the default.
-3. Four images, four formats. Never four colorways of one idea (that's the last test, not the first).
-4. Look at every image before delivering. Spelling errors ship if you don't.
-5. One prompt, one change per regeneration.
-6. Never ask for an API key in chat. Point to the `.env` file.
-7. No em dashes in any output, including on-image text.
+3. Only gpt-image-2 and Nano Banana Pro. No Nano Banana 2, no Flash-tier models.
+4. Use what the user already has. Detect connectors and keys yourself. Ask only if nothing is found.
+5. Four images, four formats. Never four colorways of one idea.
+6. Look at every image before delivering. Spelling errors ship if you don't.
+7. Always ask for approvals and log them. That's the learning loop.
+8. Never ask for an API key in chat. Never write a key into the skill folder.
+9. No em dashes in any output, including on-image text.
 
 ---
 Built by [@tenfoldmarc](https://instagram.com/tenfoldmarc). Follow for daily AI automation builds. Real systems, not theory.

@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Generate a Meta ad image with gpt-image-2 (OpenAI) or Nano Banana (Google Gemini).
+Generate a Meta ad image with gpt-image-2 (OpenAI) or Nano Banana Pro (Google Gemini).
 
 Usage:
   python3 generate.py --model gpt-image-2 --prompt "..." --size 1088x1360 --out ad.png [--ref face.jpg]
   python3 generate.py --model nano-banana-pro --prompt "..." --ratio 4:5 --out ad.png [--ref face.jpg]
-  python3 generate.py --model nano-banana-2 --prompt "..." --ratio 4:5 --out ad.png
 
-Keys are read from the environment, then from ~/.claude/ad-profiles/.env:
+Keys are read from the environment, then from ~/.claude/ad-profiles/.env (outside this skill folder, never committed):
   OPENAI_API_KEY   for gpt-image-2
-  GEMINI_API_KEY   for nano-banana-pro / nano-banana-2
+  GEMINI_API_KEY   for nano-banana-pro
 
 No third-party packages required (urllib only).
 """
@@ -18,7 +17,6 @@ from pathlib import Path
 
 GEMINI_MODELS = {
     "nano-banana-pro": "gemini-3-pro-image",
-    "nano-banana-2": "gemini-3.1-flash-image",
 }
 
 def load_env_file():
@@ -91,7 +89,7 @@ def gemini_generate(model_key, prompt, ratio, out, ref):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="gpt-image-2", choices=["gpt-image-2", "nano-banana-pro", "nano-banana-2"])
+    ap.add_argument("--model", default="gpt-image-2", choices=["gpt-image-2", "nano-banana-pro"])
     ap.add_argument("--prompt", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--ref", help="reference image (face or product)")

@@ -259,6 +259,8 @@ Do not repeat. Escalate.
 
 ## 5. Prompting guide: gpt-image-2 vs Nano Banana Pro / Nano Banana 2
 
+> **Skill rule:** the /ad-image-gen skill uses only **gpt-image-2** (default) and **Nano Banana Pro**. Nano Banana 2 is documented below for comparison only. It is not offered as an option, because it loses on text accuracy and realism, and the cost saving doesn't matter at ad volumes.
+
 ### Which model for what (2026, from published tests)
 
 | Job | Pick | Why |
