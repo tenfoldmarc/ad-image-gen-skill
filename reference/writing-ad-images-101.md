@@ -253,7 +253,7 @@ Do not repeat. Escalate.
 **Brand consistency**
 - Same 1 to 2 fonts across every ad. Same accent color. Same logo position (small, corner) or no logo.
 - Vary the format, not the brand system. Kern's four color variants keep type, layout, and photo identical.
-- Marc's default system from memory (dark grey ground, one orange field, Archivo + Plex Mono) fits formats (a), (h), (i), (j), and (k) directly.
+- A one-ground, one-accent system (a dark neutral ground with a single saturated accent field, one display font plus one mono or grotesque) fits formats (a), (h), (i), (j), and (k) directly. Use the brand colors and fonts from the user's profile as that system.
 
 ---
 
