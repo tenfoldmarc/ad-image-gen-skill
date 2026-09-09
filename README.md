@@ -9,7 +9,7 @@ It's built on a swipe file of 35 real ads pulled from Hormozi, Skool, Dan Henry,
 
 ## What It Does
 
-1. First run only: a short interview about your business, one question at a time. Shared with `/ad-copy` and `/video-ad-copy`, so if you ran those, it skips this.
+1. First run only: a short interview about your business, one question at a time. Shared with `/ad-copy`, `/video-ad-copy`, `/ad-spy`, `/vsl-script`, and `/sales-page`, so if you ran any of those, it skips this.
 2. Asks your brand colors, font feel, and whether you want your face in ads. Then it looks at what you already have connected to Claude (image connectors, API keys) and recommends gpt-image-2 because it spells text right. Nano Banana Pro is the other option. Nothing found? It asks if you have a key, or runs in prompt-only mode.
 3. Asks what today's ad is for and whether the traffic is cold, warm, or hot.
 4. Picks 4 different formats (text-only callout, founder plus headline, testimonial card, offer card, and 7 more) and writes the on-image copy for each.
@@ -121,7 +121,7 @@ It shows the images, you say "1 and 3, and the font on 2 is too thin." It sorts 
 - `reference/writing-ad-images-101.md`: the playbook. 11 formats, on-image copy rules, prompt templates, model comparison, Meta sizes, testing framework
 - `reference/swipes/`: 35 real ad images with breakdowns
 
-Your profile, your feedback history, and any API key live at `~/.claude/ad-profiles/` and your output folder on your machine, shared with [ad-copy](https://github.com/tenfoldmarc/ad-copy-skill) and [video-ad-copy](https://github.com/tenfoldmarc/video-ad-copy-skill).
+Your profile, your feedback history, and any API key live at `~/.claude/ad-profiles/` and your output folder on your machine, shared with [ad-copy](https://github.com/tenfoldmarc/ad-copy-skill), [video-ad-copy](https://github.com/tenfoldmarc/video-ad-copy-skill), [ad-spy](https://github.com/tenfoldmarc/ad-spy-skill), [vsl-script](https://github.com/tenfoldmarc/vsl-script-skill), and [sales-page](https://github.com/tenfoldmarc/sales-page-skill).
 
 ---
 

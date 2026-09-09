@@ -26,14 +26,14 @@ Read `reference/writing-ad-images-101.md` before every batch. It has the 11 form
 
 ---
 
-## Step 0: Shared profile (onboard once, used by three skills)
+## Step 0: Shared profile (onboard once, used by six skills)
 
-Profiles are shared between `/ad-copy`, `/video-ad-copy`, and `/ad-image-gen`:
+Profiles are shared between `/ad-copy`, `/video-ad-copy`, `/ad-image-gen`, `/ad-spy`, `/vsl-script`, and `/sales-page`:
 
 - `~/.claude/ad-profiles/config.json` (`activeProfile`, `outputDir`, `imageBackend`, `imageModel`)
 - `~/.claude/ad-profiles/[brand-slug].md`
 
-**On every run:** if a profile is active, load it and say "Using the [brand] profile." Otherwise run the interview (same 13 questions as /ad-copy: name, brand, offer, price and how they buy, audience, their problem in their words, what they tried, mechanism, proof, story, voice, do-not-say, output folder). One question at a time. `skip` and `done` work. Save in the same markdown layout as /ad-copy so all three skills read it.
+**On every run:** if a profile is active, load it and say "Using the [brand] profile." Otherwise run the interview (same 13 questions as /ad-copy: name, brand, offer, price and how they buy, audience, their problem in their words, what they tried, mechanism, proof, story, voice, do-not-say, output folder). One question at a time. `skip` and `done` work. Save in the same markdown layout as /ad-copy so every skill in the suite reads it.
 
 Then, once, add an **Image preferences** section to the profile by asking one question at a time:
 
